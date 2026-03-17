@@ -32,6 +32,16 @@ public class MainMenu : MonoBehaviour
     // Array storing all supported screen resolutions
     private Resolution[] resolutions;
 
+    private void ApplyDisplaySettings(int resolutionIndex, bool useFullscreen)
+    {
+        Resolution selectedResolution = resolutions[resolutionIndex];
+        FullScreenMode fullscreenMode = useFullscreen
+            ? FullScreenMode.FullScreenWindow
+            : FullScreenMode.Windowed;
+
+        Screen.SetResolution(selectedResolution.width, selectedResolution.height, fullscreenMode);
+    }
+
 
     // Start runs when the menu scene first loads
     private void Start()
@@ -129,21 +139,17 @@ public class MainMenu : MonoBehaviour
             AudioListener.volume = volumeSlider.value;
         }
 
-        // Apply fullscreen setting
-        Screen.fullScreen = fullscreenToggle.isOn;
+        bool useFullscreen = fullscreenToggle.isOn;
 
         // Apply graphics quality based on the quality slider
         QualitySettings.SetQualityLevel((int)qualitySlider.value);
 
-        // Get the selected resolution from the dropdown
-        Resolution selectedResolution = resolutions[resolutionDropdown.value];
-
-        // Apply the selected screen resolution
-        Screen.SetResolution(selectedResolution.width, selectedResolution.height, Screen.fullScreen);
+        // Apply the selected screen resolution and window mode explicitly
+        ApplyDisplaySettings(resolutionDropdown.value, useFullscreen);
 
         // Save all settings so they persist between game launches
         PlayerPrefs.SetFloat("Volume", volumeSlider.value);
-        PlayerPrefs.SetInt("Fullscreen", fullscreenToggle.isOn ? 1 : 0);
+        PlayerPrefs.SetInt("Fullscreen", useFullscreen ? 1 : 0);
         PlayerPrefs.SetInt("Muted", muteToggle.isOn ? 1 : 0);
         PlayerPrefs.SetInt("QualityLevel", (int)qualitySlider.value);
         PlayerPrefs.SetInt("ResolutionIndex", resolutionDropdown.value);
@@ -164,9 +170,11 @@ public class MainMenu : MonoBehaviour
         int savedQuality = PlayerPrefs.GetInt("QualityLevel", 2);
         int savedResolutionIndex = PlayerPrefs.GetInt("ResolutionIndex", resolutionDropdown.value);
 
+        bool useFullscreen = savedFullscreen == 1;
+
         // Update UI sliders and toggles with saved values
         volumeSlider.value = savedVolume;
-        fullscreenToggle.isOn = savedFullscreen == 1;
+        fullscreenToggle.isOn = useFullscreen;
         muteToggle.isOn = savedMuted == 1;
         qualitySlider.value = savedQuality;
 
@@ -186,15 +194,11 @@ public class MainMenu : MonoBehaviour
             AudioListener.volume = savedVolume;
         }
 
-        // Apply fullscreen setting
-        Screen.fullScreen = savedFullscreen == 1;
-
         // Apply graphics quality
         QualitySettings.SetQualityLevel(savedQuality);
 
-        // Apply saved resolution
-        Resolution selectedResolution = resolutions[resolutionDropdown.value];
-        Screen.SetResolution(selectedResolution.width, selectedResolution.height, Screen.fullScreen);
+        // Apply saved resolution and window mode explicitly
+        ApplyDisplaySettings(resolutionDropdown.value, useFullscreen);
 
         // Refresh dropdown visual
         resolutionDropdown.RefreshShownValue();

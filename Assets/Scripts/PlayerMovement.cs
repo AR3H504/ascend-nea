@@ -1,5 +1,6 @@
 using UnityEngine;
 
+
 // Controls player movement in my 2D platformer game "Ascend".
 // Includes smooth horizontal movement, running, jumping,
 // coyote time, jump buffering, sliding,
@@ -7,9 +8,11 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private Animator animator; // Reference to the Animator component for controlling animations
+    private SpriteRenderer sr; // Reference to the SpriteRenderer component for flipping the sprite based on movement direction
     // Movement Settings
     [Header("Movement")]
-    public float moveSpeed = 8f;           // Maximum horizontal speed
+    public float moveSpeed = 5f;           // Maximum horizontal speed
     public float acceleration = 60f;       // How quickly the player reaches max speed
     public float deceleration = 80f;       // How quickly the player slows to a stop
     public float runMultiplier = 1.5f;     // Speed increase when holding Shift
@@ -66,7 +69,9 @@ public class PlayerMovement : MonoBehaviour
     private float facingDirection = 1f;    // Stores the direction the player is facing (1 = right, -1 = left)
 
     void Start()
-    {
+    {   
+        sr = GetComponent<SpriteRenderer>(); // Cache SpriteRenderer reference for flipping the sprite
+        animator = GetComponent<Animator>(); // Cache Animator reference for controlling animations
         // Cache Rigidbody reference for performance
         rb = GetComponent<Rigidbody2D>();
 
@@ -82,6 +87,18 @@ public class PlayerMovement : MonoBehaviour
         // Read horizontal input (-1 = left, 1 = right)
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
+        if (horizontalInput > 0)
+        {
+            sr.flipX = false;
+        }
+        else if (horizontalInput < 0)
+        {
+            sr.flipX = true;
+        }
+
+        animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
+        animator.SetBool("IsJumping", !isGrounded);
+        
         // Apply run multiplier if Shift is held
         if (Input.GetKey(KeyCode.LeftShift))
         {

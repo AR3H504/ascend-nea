@@ -10,6 +10,12 @@ public class PlayerMovement : MonoBehaviour
 {
     private Animator animator; // Reference to the Animator component for controlling animations
     private SpriteRenderer sr; // Reference to the SpriteRenderer component for flipping the sprite based on movement direction
+
+    private bool isClimbingLedge;
+    private Vector3 climbStartPos;
+    private Vector3 climbTargetPos;
+    private float climbProgress;
+    public float climbDuration = 0.25f;
     // Movement Settings
     [Header("Movement")]
     public float moveSpeed = 5f;           // Maximum horizontal speed
@@ -84,6 +90,26 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (isClimbingLedge)
+        {
+            animator.SetFloat("Speed", 0f);
+            animator.SetBool("IsLedgeGrabbing", false);
+            animator.SetBool("IsClimbingLedge", true);
+            animator.SetBool("IsJumping", false);
+            animator.SetBool("IsHardFalling", false);
+
+            climbProgress += Time.deltaTime / climbDuration;
+            transform.position = Vector3.Lerp(climbStartPos, climbTargetPos, climbProgress);
+
+            if (climbProgress >= 1f)
+            {
+                isClimbingLedge = false;
+                rb.gravityScale = gravityBeforeLedgeGrab;
+            }
+
+            return;
+        }
+
         // Read horizontal input (-1 = left, 1 = right)
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
@@ -96,9 +122,20 @@ public class PlayerMovement : MonoBehaviour
             sr.flipX = true;
         }
 
-        animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
-        animator.SetBool("IsJumping", !isGrounded);
-        
+        if (isGrabbingLedge || isClimbingLedge)
+        {
+            animator.SetFloat("Speed", 0f);
+        }
+        else
+        {
+            animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
+        }
+        animator.SetBool("IsLedgeGrabbing", isGrabbingLedge);
+        animator.SetBool("IsClimbingLedge", isClimbingLedge);
+        animator.SetBool("IsJumping", !isGrounded && !isGrabbingLedge && !isClimbingLedge);
+        animator.SetFloat("VerticalSpeed", rb.linearVelocity.y);
+        animator.SetBool("IsHardFalling", rb.linearVelocity.y < -15f && !isGrounded && !isGrabbingLedge && !isClimbingLedge);
+
         // Apply run multiplier if Shift is held
         if (Input.GetKey(KeyCode.LeftShift))
         {
@@ -115,6 +152,7 @@ public class PlayerMovement : MonoBehaviour
             facingDirection = -1f;
         }
 
+        
         // Check if player is touching the ground using a small overlap circle
         isGrounded = Physics2D.OverlapCircle(
             groundCheck.position,
@@ -222,7 +260,7 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         // Prevent normal movement forces while the player is grabbing a ledge
-        if (isGrabbingLedge)
+        if (isGrabbingLedge || isClimbingLedge)
         {
             rb.linearVelocity = Vector2.zero;
             return;
@@ -318,15 +356,21 @@ public class PlayerMovement : MonoBehaviour
     // Moves the player up and onto the platform after climbing
     void ClimbLedge()
     {
-        // Move the player slightly upward and forward onto the ledge
-        transform.position += new Vector3(facingDirection * 0.5f, 1f, 0f);
-
-        // Restore normal gravity and exit ledge grab state
-        rb.gravityScale = gravityBeforeLedgeGrab;
         isGrabbingLedge = false;
-        ledgeCooldownTimer = 0f;
-    }
+        isClimbingLedge = true;
 
+        climbStartPos = transform.position;
+        climbTargetPos = transform.position + new Vector3(facingDirection * 0.5f, 1f, 0f);
+        climbProgress = 0f;
+
+        rb.gravityScale = 0f;
+        rb.linearVelocity = Vector2.zero;
+        ledgeCooldownTimer = ledgeRegrabCooldown;
+
+        animator.SetBool("IsLedgeGrabbing", false);
+        animator.SetBool("IsClimbingLedge", true);
+        animator.Play("LedgeClimb", 0, 0f);
+    }
     // Makes the player lose their grip and fall after hanging too long
     void ReleaseLedge()
     {

@@ -97,6 +97,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("IsClimbingLedge", true);
             animator.SetBool("IsJumping", false);
             animator.SetBool("IsHardFalling", false);
+            
 
             climbProgress += Time.deltaTime / climbDuration;
             transform.position = Vector3.Lerp(climbStartPos, climbTargetPos, climbProgress);
@@ -135,6 +136,7 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool("IsJumping", !isGrounded && !isGrabbingLedge && !isClimbingLedge);
         animator.SetFloat("VerticalSpeed", rb.linearVelocity.y);
         animator.SetBool("IsHardFalling", rb.linearVelocity.y < -15f && !isGrounded && !isGrabbingLedge && !isClimbingLedge);
+        
 
         // Apply run multiplier if Shift is held
         if (Input.GetKey(KeyCode.LeftShift))
@@ -211,6 +213,7 @@ public class PlayerMovement : MonoBehaviour
 
             // Visually squash the player to indicate sliding
             transform.localScale = new Vector3(originalScale.x * 1.3f, originalScale.y * 0.6f, originalScale.z);
+            animator.Play("Slide", 0, 0f);
         }
 
         // Reduce the slide timer while sliding
@@ -255,6 +258,8 @@ public class PlayerMovement : MonoBehaviour
             isGrounded = false;
             jumpBufferCounter = 0f;
         }
+
+        animator.SetBool("IsSliding", isSliding);
     }
 
     void FixedUpdate()

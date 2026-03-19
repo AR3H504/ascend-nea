@@ -11,11 +11,20 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator; // Reference to the Animator component for controlling animations
     private SpriteRenderer sr; // Reference to the SpriteRenderer component for flipping the sprite based on movement direction
 
-    private bool isClimbingLedge;
-    private Vector3 climbStartPos;
-    private Vector3 climbTargetPos;
-    private float climbProgress;
-    public float climbDuration = 0.25f;
+    private bool isClimbingLedge; // Tracks whether the player is currently climbing up from a ledge grab
+    private Vector3 climbStartPos; // Starting position of the player when beginning to climb a ledge
+    private Vector3 climbTargetPos; // Target position the player moves towards when climbing a ledge (slightly above and forward of the grab point)
+    private float climbProgress; // Tracks the progress of the ledge climb (0 = start, 1 = fully climbed)
+    
+    private BoxCollider2D boxCollider; // Reference to the BoxCollider2D component for adjusting collider size during sliding
+
+    private Vector2 originalColliderSize; // Stores the normal size of the player's collider
+    private Vector2 originalColliderOffset; // Stores the normal offset of the player's collider
+    private Vector2 activeSlideColliderSize; // Stores the runtime slide collider size after clamping it to safe values
+    private Vector2 activeSlideColliderOffset; // Stores the runtime slide collider offset so the feet stay planted during a slide
+
+
+    public float climbDuration = 0.25f;   // Time it takes to climb up from a ledge grab
     // Movement Settings
     [Header("Movement")]
     public float moveSpeed = 5f;           // Maximum horizontal speed
@@ -33,6 +42,19 @@ public class PlayerMovement : MonoBehaviour
     [Header("Slide")]
     public float slideSpeed = 12f;         // Speed applied during a slide
     public float slideDuration = 0.35f;    // How long the slide lasts
+
+    [Header("Slide Collider")]
+    public Vector2 slideColliderSize = new Vector2(1f, 0.42f); // Size of the collider while sliding
+    public Vector2 slideColliderOffset = new Vector2(0f, -0.25f); // Offset of the collider while sliding
+
+    [Header("Slide Jump")]
+    public float slideJumpBoost = 1.1f; // Multiplier to slightly boost jump when jumping out of a slide
+
+    [Header("Slide Momentum")]
+    public float postSlideMomentum = 0.85f; // Keeps some horizontal speed after slide ends
+
+    // Tracks whether slide momentum should be applied once after the slide finishes
+    private bool applyPostSlideMomentum;
 
     // Ground Detection
     [Header("Ground Check")]
@@ -86,6 +108,11 @@ public class PlayerMovement : MonoBehaviour
 
         // Store the normal gravity so it can be restored after climbing
         gravityBeforeLedgeGrab = rb.gravityScale;
+
+        boxCollider = GetComponent<BoxCollider2D>(); // Cache BoxCollider reference for adjusting collider size during sliding
+        originalColliderSize = boxCollider.size; // Store the normal size of the collider to restore after sliding
+        originalColliderOffset = boxCollider.offset; // Store the normal offset of the collider to restore after sliding
+        CacheSlideColliderShape();
     }
 
     void Update()
@@ -212,8 +239,10 @@ public class PlayerMovement : MonoBehaviour
             slideDirection = Mathf.Sign(horizontalInput);
 
             // Visually squash the player to indicate sliding
-            transform.localScale = new Vector3(originalScale.x * 1.3f, originalScale.y * 0.6f, originalScale.z);
+            // transform.localScale = new Vector3(originalScale.x * 1.3f, originalScale.y * 0.6f, originalScale.z);
             animator.Play("Slide", 0, 0f);
+            boxCollider.size = activeSlideColliderSize; // Adjust collider size for sliding without widening into nearby geometry
+            boxCollider.offset = activeSlideColliderOffset; // Keep the slide collider aligned with the player's feet
         }
 
         // Reduce the slide timer while sliding
@@ -221,13 +250,60 @@ public class PlayerMovement : MonoBehaviour
         {
             slideTimer -= Time.deltaTime;
 
-            // End the slide when the timer runs out
-            if (slideTimer <= 0f)
+            // If the player presses jump during a slide, cancel the slide and jump immediately
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W))
             {
+                // End the slide
                 isSliding = false;
 
-                // Return the player to their normal size
-                transform.localScale = originalScale;
+                // Restore the player's normal collider before jumping
+                boxCollider.size = originalColliderSize;
+                boxCollider.offset = originalColliderOffset;
+
+                // Reset vertical velocity so the jump is consistent
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+
+                // Apply a slightly boosted jump out of the slide
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * slideJumpBoost);
+
+                // Clear timers so the jump cannot be double-triggered
+                coyoteCounter = 0f;
+                jumpBufferCounter = 0f;
+                isGrounded = false;
+
+                // Enable momentum carry after the slide jump
+                applyPostSlideMomentum = true;
+            }
+
+            // End the slide when the timer runs out
+            else if (slideTimer <= 0f)
+            {
+                // Check whether there is enough room above the player to stand up safely
+                bool blockedAbove = Physics2D.OverlapBox(
+                    (Vector2)transform.position + originalColliderOffset,
+                    originalColliderSize,
+                    0f,
+                    groundLayer
+                );
+
+                // Only stand back up if there is space
+                if (!blockedAbove)
+                {
+                    // End the slide
+                    isSliding = false;
+
+                    // Restore the player's normal collider
+                    boxCollider.size = originalColliderSize;
+                    boxCollider.offset = originalColliderOffset;
+
+                    // Enable one burst of momentum carry after the slide finishes
+                    applyPostSlideMomentum = true;
+                }
+                else
+                {
+                    // Keep the player sliding for a little longer until there is room to stand
+                    slideTimer = 0.1f;
+                }
             }
         }
 
@@ -276,10 +352,20 @@ public class PlayerMovement : MonoBehaviour
 
         if (isSliding)
         {
+            // While sliding, force the player to move at slide speed
             targetSpeed = slideDirection * slideSpeed;
+        }
+        else if (applyPostSlideMomentum)
+        {
+            // After the slide ends, keep some of the slide speed for a smoother transition
+            targetSpeed = slideDirection * slideSpeed * postSlideMomentum;
+
+            // Apply this only once
+            applyPostSlideMomentum = false;
         }
         else
         {
+            // Normal movement when not sliding
             targetSpeed = horizontalInput * moveSpeed;
         }
 
@@ -295,6 +381,21 @@ public class PlayerMovement : MonoBehaviour
         float movement = speedDifference * accelRate;
 
         rb.AddForce(movement * Vector2.right);
+    }
+
+    void CacheSlideColliderShape()
+    {
+        // Never let the slide collider become wider or taller than the standing collider,
+        // otherwise it can snag on ceilings or get pushed into the ground.
+        float slideWidth = Mathf.Clamp(slideColliderSize.x, 0.05f, originalColliderSize.x);
+        float slideHeight = Mathf.Clamp(slideColliderSize.y, 0.05f, originalColliderSize.y);
+
+        activeSlideColliderSize = new Vector2(slideWidth, slideHeight);
+
+        float standingBottom = originalColliderOffset.y - (originalColliderSize.y * 0.5f);
+        float slideOffsetY = standingBottom + (slideHeight * 0.5f);
+
+        activeSlideColliderOffset = new Vector2(slideColliderOffset.x, slideOffsetY);
     }
 
            
@@ -345,11 +446,18 @@ public class PlayerMovement : MonoBehaviour
     // Freezes the player in place when a ledge is grabbed
     void GrabLedge()
     {
+        // Mark the player as grabbing a ledge
         isGrabbingLedge = true;
+
+        // Reset the ledge hang timer
         ledgeHangTimer = ledgeHangDuration;
         
         // Cancel sliding if a ledge is grabbed
         isSliding = false;
+
+        // Restore the normal collider in case the player was sliding
+        boxCollider.size = originalColliderSize;
+        boxCollider.offset = originalColliderOffset;
 
         // Stop all movement so the player hangs still
         rb.linearVelocity = Vector2.zero;

@@ -41,7 +41,7 @@ public class PlayerMovement : MonoBehaviour
     // Sliding Settings
     [Header("Slide")]
     public float slideSpeed = 12f;         // Speed applied during a slide
-    public float slideDuration = 0.35f;    // How long the slide lasts
+    public float slideDuration = 0.5f;    // How long the slide lasts
     [Range(0f, 1f)]
     public float slideHoldPoseTime = 0.8f; // Normalized point in the slide clip to hold when the player cannot stand up yet
 
@@ -70,7 +70,9 @@ public class PlayerMovement : MonoBehaviour
     public Transform rightLedgeCheckTop;    // Position used to check for empty space above a right ledge
     public Transform leftLedgeCheck;        // Position used to detect a wall on the player's left side
     public Transform leftLedgeCheckTop;     // Position used to check for empty space above a left ledge
+    public LayerMask ledgeGrabbableLayer;   // Only colliders on this layer can be grabbed as ledges
     public float ledgeCheckDistance = 0.35f; // Distance of the ledge detection raycasts
+    public float maxLedgeGrabHeight = 0.6f; // Prevents snapping to ledges that are far above the player, such as tall walls or big blocks
     public float ledgeHangDuration = 1.2f;   // Maximum time the player can hang before slipping off
     public float ledgeRegrabCooldown = 0.2f; // Delay before the same ledge can be grabbed again
 
@@ -98,6 +100,7 @@ public class PlayerMovement : MonoBehaviour
     private float ledgeCooldownTimer;     // Prevents instantly re-grabbing a ledge after falling
 
     private float facingDirection = 1f;    // Stores the direction the player is facing (1 = right, -1 = left)
+    public Vector2 ledgeHangOffset = new Vector2(0.35f, -0.15f); // Offset from the ledge corner to place the player into a clean hang pose
 
     void Start()
     {   
@@ -116,6 +119,7 @@ public class PlayerMovement : MonoBehaviour
         originalColliderSize = boxCollider.size; // Store the normal size of the collider to restore after sliding
         originalColliderOffset = boxCollider.offset; // Store the normal offset of the collider to restore after sliding
         CacheSlideColliderShape();
+        CacheLedgeGrabbableLayer();
     }
 
     void Update()
@@ -161,13 +165,6 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
         }
-        animator.SetBool("IsLedgeGrabbing", isGrabbingLedge);
-        animator.SetBool("IsClimbingLedge", isClimbingLedge);
-        animator.SetBool("IsJumping", !isGrounded && !isGrabbingLedge && !isClimbingLedge);
-        animator.SetFloat("VerticalSpeed", rb.linearVelocity.y);
-        animator.SetBool("IsHardFalling", rb.linearVelocity.y < -10f && !isGrounded && !isGrabbingLedge && !isClimbingLedge);
-        
-
         // Apply run multiplier if Shift is held
         if (Input.GetKey(KeyCode.LeftShift))
         {
@@ -189,8 +186,14 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(
             groundCheck.position,
             groundCheckRadius,
-            groundLayer
+            GetSolidCollisionMask()
         );
+
+        animator.SetBool("IsLedgeGrabbing", isGrabbingLedge);
+        animator.SetBool("IsClimbingLedge", isClimbingLedge);
+        animator.SetBool("IsJumping", !isGrounded && !isGrabbingLedge && !isClimbingLedge);
+        animator.SetFloat("VerticalSpeed", rb.linearVelocity.y);
+        animator.SetBool("IsHardFalling", rb.linearVelocity.y < -10f && !isGrounded && !isGrabbingLedge && !isClimbingLedge);
 
         // If grounded, refresh the coyote timer
         if (isGrounded)
@@ -254,6 +257,13 @@ public class PlayerMovement : MonoBehaviour
         if (isSliding)
         {
             slideTimer -= Time.deltaTime;
+
+            // If the configured slide lasts longer than the authored animation clip,
+            // freeze on the low slide pose instead of showing the final bad frame.
+            if (!isHoldingSlidePose && HasReachedSlideHoldPose())
+            {
+                HoldSlidePose();
+            }
 
             // If the player presses jump during a slide, cancel the slide and jump immediately
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W))
@@ -398,14 +408,30 @@ public class PlayerMovement : MonoBehaviour
     bool CanStandUp()
     {
         Vector2 standingSize = GetWorldColliderSize(originalColliderSize);
+        Vector2 slideSize = GetWorldColliderSize(activeSlideColliderSize);
         Vector2 standingOffset = GetWorldColliderOffset(originalColliderOffset);
         Vector2 standingCenter = (Vector2)transform.position + standingOffset;
+        float headroomHeight = standingSize.y - slideSize.y;
+
+        if (headroomHeight <= 0.001f)
+        {
+            return true;
+        }
+
+        // Only check the extra space above the current slide collider. This avoids
+        // counting the floor as an obstruction while still preventing the player
+        // from standing up into a ceiling.
+        float standingTop = standingCenter.y + (standingSize.y * 0.5f);
+        float slideTop = standingCenter.y - (standingSize.y * 0.5f) + slideSize.y;
+        float headroomCenterY = (standingTop + slideTop) * 0.5f;
+        Vector2 headroomSize = new Vector2(standingSize.x * 0.95f, Mathf.Max(headroomHeight - 0.01f, 0.01f));
+        Vector2 headroomCenter = new Vector2(standingCenter.x, headroomCenterY);
 
         Collider2D hit = Physics2D.OverlapBox(
-            standingCenter,
-            standingSize,
+            headroomCenter,
+            headroomSize,
             0f,
-            groundLayer
+            GetSolidCollisionMask()
         );
 
         return hit == null;
@@ -423,6 +449,19 @@ public class PlayerMovement : MonoBehaviour
         animator.Play("Slide", 0, Mathf.Clamp01(slideHoldPoseTime));
         animator.Update(0f);
         animator.speed = 0f;
+    }
+
+    bool HasReachedSlideHoldPose()
+    {
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (!stateInfo.IsName("Slide"))
+        {
+            return false;
+        }
+
+        float normalizedTime = stateInfo.normalizedTime % 1f;
+        return normalizedTime >= Mathf.Clamp01(slideHoldPoseTime);
     }
 
     Vector2 GetWorldColliderSize(Vector2 localSize)
@@ -487,7 +526,7 @@ public class PlayerMovement : MonoBehaviour
             activeLedgeCheck.position,
             rayDirection,
             ledgeCheckDistance,
-            groundLayer
+            ledgeGrabbableLayer
         );
 
         // Cast a second ray forward at head height to check for empty space
@@ -495,18 +534,40 @@ public class PlayerMovement : MonoBehaviour
             activeLedgeCheckTop.position,
             rayDirection,
             ledgeCheckDistance,
-            groundLayer
+            ledgeGrabbableLayer
         );
 
         // A ledge is detected if there is a wall at the lower point but no wall above it
         if (wallHit && !topHit)
         {
-            GrabLedge();
+            float ledgeTopY = wallHit.collider.bounds.max.y;
+            float maxReachableTopY = activeLedgeCheckTop.position.y + maxLedgeGrabHeight;
+
+            if (ledgeTopY <= maxReachableTopY)
+            {
+                GrabLedge(wallHit);
+            }
         }
     }
 
+    void CacheLedgeGrabbableLayer()
+    {
+        if (ledgeGrabbableLayer.value != 0)
+        {
+            return;
+        }
+
+        int namedLayerMask = LayerMask.GetMask("LedgeGrabbable");
+        ledgeGrabbableLayer = namedLayerMask != 0 ? namedLayerMask : groundLayer;
+    }
+
+    LayerMask GetSolidCollisionMask()
+    {
+        return groundLayer | ledgeGrabbableLayer;
+    }
+
     // Freezes the player in place when a ledge is grabbed
-    void GrabLedge()
+    void GrabLedge(RaycastHit2D wallHit)
     {
         // Mark the player as grabbing a ledge
         isGrabbingLedge = true;
@@ -522,6 +583,14 @@ public class PlayerMovement : MonoBehaviour
         // Restore the normal collider in case the player was sliding
         boxCollider.size = originalColliderSize;
         boxCollider.offset = originalColliderOffset;
+
+        // Snap the player to a consistent hang position based on the detected ledge face.
+        Bounds wallBounds = wallHit.collider.bounds;
+        float hangX = facingDirection > 0f
+            ? wallBounds.min.x - ledgeHangOffset.x
+            : wallBounds.max.x + ledgeHangOffset.x;
+        float hangY = wallBounds.max.y + ledgeHangOffset.y;
+        transform.position = new Vector3(hangX, hangY, transform.position.z);
 
         // Stop all movement so the player hangs still
         rb.linearVelocity = Vector2.zero;

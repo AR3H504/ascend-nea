@@ -1,0 +1,702 @@
+fileFormatVersion: 2
+guid: 60611b23e8140b74dac1b6c8c5548753
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3955322688468534512
+    second: Relic + Portal_0
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Relic + Portal_14
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 639
+        width: 366
+        height: 290
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 44799e3538239b3428486d926d58d0f9
+      internalID: -1879298909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_21
+      rect:
+        serializedVersion: 2
+        x: 1154
+        y: 748
+        width: 171
+        height: 177
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 30800eac0737af04081813b31f2cc049
+      internalID: -917988450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_23
+      rect:
+        serializedVersion: 2
+        x: 1336
+        y: 754
+        width: 187
+        height: 173
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57adf6b8ee834a7498510b2e7a14d660
+      internalID: -739756555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_31
+      rect:
+        serializedVersion: 2
+        x: 641
+        y: 425
+        width: 516
+        height: 524
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 085f582fe20dd2e40a3b77e6d8c889ca
+      internalID: -1971127949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_36
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 443
+        width: 131
+        height: 143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 78f32a0d033285e4a988da1c1c9791ac
+      internalID: -238435152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_37
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 444
+        width: 110
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7935e12ca8b4ae14ea9491c209c59b1d
+      internalID: -976080329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_38
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 448
+        width: 115
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa136b2ab8d54104491369f589af193c
+      internalID: -271218667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_39
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 444
+        width: 113
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 157292522cb0d5c48bacf33c97a56ca9
+      internalID: 56481302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_40
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 445
+        width: 118
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be33f406c3c8c364dac4eeb52cc39dc6
+      internalID: -1460086896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_45
+      rect:
+        serializedVersion: 2
+        x: 1158
+        y: 562
+        width: 171
+        height: 180
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ddb9e06838300b47b1455e3b944a09c
+      internalID: 447157520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_47
+      rect:
+        serializedVersion: 2
+        x: 1341
+        y: 570
+        width: 180
+        height: 173
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c66b7d032577ca47a656246caba5e00
+      internalID: -472226661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_58
+      rect:
+        serializedVersion: 2
+        x: 1229
+        y: 391
+        width: 198
+        height: 169
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a92bd2c388392040be99b845784366b
+      internalID: -2143613989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_60
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 233
+        width: 136
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93b153925dcc95548ad880947e82cd35
+      internalID: -1016509793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_69
+      rect:
+        serializedVersion: 2
+        x: 1289
+        y: 50
+        width: 221
+        height: 50
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4cd7966014445c7408dd1aeb60128541
+      internalID: -777141765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_74
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 236
+        width: 129
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3d3eb2f248a48a4489c717ddb417034
+      internalID: -1522028681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_75
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 232
+        width: 128
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2723d1d81d9e4b47a38dc78de57bf5c
+      internalID: 463884400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_76
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 235
+        width: 107
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70a87cbfd8cf8294f9e3582778c25e42
+      internalID: -1052666166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_79
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 139
+        width: 239
+        height: 117
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 458fba4f7c8c1a9478b32c3713d2cd48
+      internalID: 859489041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_80
+      rect:
+        serializedVersion: 2
+        x: 1079
+        y: 141
+        width: 122
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 485478b7d4f675b4eba8472020e82ada
+      internalID: 188686429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_81
+      rect:
+        serializedVersion: 2
+        x: 1212
+        y: 134
+        width: 99
+        height: 123
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: feac430c5e4ca9e4e8b3b35cd1e21778
+      internalID: -1200597731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_83
+      rect:
+        serializedVersion: 2
+        x: 1321
+        y: 135
+        width: 169
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64b443d3fd74e8b42b703e19f9ab45ae
+      internalID: 1809024124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Relic + Portal_88
+      rect:
+        serializedVersion: 2
+        x: 548
+        y: 234
+        width: 94
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 15f4257cd878b32469c0a961dd0558f3
+      internalID: 145428307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 8ac918558f4470146a290e36898ba93e
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":128.0,"y":128.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      Relic + Portal_0: 3955322688468534512
+      Relic + Portal_1: 1535488203
+      Relic + Portal_10: 1238522196
+      Relic + Portal_11: 2059942160
+      Relic + Portal_12: 1101341514
+      Relic + Portal_13: 1849811014
+      Relic + Portal_14: -1879298909
+      Relic + Portal_15: -131668457
+      Relic + Portal_16: 1306745040
+      Relic + Portal_17: -1852654989
+      Relic + Portal_18: -93470583
+      Relic + Portal_19: 1842183427
+      Relic + Portal_2: 969276526
+      Relic + Portal_20: -485917273
+      Relic + Portal_21: -917988450
+      Relic + Portal_22: 48308928
+      Relic + Portal_23: -739756555
+      Relic + Portal_24: 411447195
+      Relic + Portal_25: -675197693
+      Relic + Portal_26: 413311260
+      Relic + Portal_27: -136872970
+      Relic + Portal_28: -1661100852
+      Relic + Portal_29: 697464950
+      Relic + Portal_3: 840697724
+      Relic + Portal_30: 972974523
+      Relic + Portal_31: -1971127949
+      Relic + Portal_32: 1614105366
+      Relic + Portal_33: 594903571
+      Relic + Portal_34: -2028930324
+      Relic + Portal_35: 1778935771
+      Relic + Portal_36: -238435152
+      Relic + Portal_37: -976080329
+      Relic + Portal_38: -271218667
+      Relic + Portal_39: 56481302
+      Relic + Portal_4: 1931965279
+      Relic + Portal_40: -1460086896
+      Relic + Portal_41: 828968037
+      Relic + Portal_42: 739117069
+      Relic + Portal_43: 1950656776
+      Relic + Portal_44: 1088519584
+      Relic + Portal_45: 447157520
+      Relic + Portal_46: 467944271
+      Relic + Portal_47: -472226661
+      Relic + Portal_48: -1018065005
+      Relic + Portal_49: -14646644
+      Relic + Portal_5: 190948206
+      Relic + Portal_50: -643074004
+      Relic + Portal_51: 604967513
+      Relic + Portal_52: 1594455452
+      Relic + Portal_53: 1283556301
+      Relic + Portal_54: -1273535612
+      Relic + Portal_55: -338184801
+      Relic + Portal_56: -2031897979
+      Relic + Portal_57: 1748595195
+      Relic + Portal_58: -2143613989
+      Relic + Portal_59: -51557272
+      Relic + Portal_6: -731003519
+      Relic + Portal_60: -1016509793
+      Relic + Portal_61: -1889015197
+      Relic + Portal_62: 182139417
+      Relic + Portal_63: -1246104674
+      Relic + Portal_64: -1810978459
+      Relic + Portal_65: -916215574
+      Relic + Portal_66: 895448700
+      Relic + Portal_67: -498603866
+      Relic + Portal_68: -1543574705
+      Relic + Portal_69: -777141765
+      Relic + Portal_7: 674107225
+      Relic + Portal_70: -1641763418
+      Relic + Portal_71: -1858567438
+      Relic + Portal_72: -992187866
+      Relic + Portal_73: 743581251
+      Relic + Portal_74: -1522028681
+      Relic + Portal_75: 463884400
+      Relic + Portal_76: -1052666166
+      Relic + Portal_77: 1757802165
+      Relic + Portal_78: -1339305375
+      Relic + Portal_79: 859489041
+      Relic + Portal_8: -338462302
+      Relic + Portal_80: 188686429
+      Relic + Portal_81: -1200597731
+      Relic + Portal_82: -1958553758
+      Relic + Portal_83: 1809024124
+      Relic + Portal_84: -202476655
+      Relic + Portal_85: 567775247
+      Relic + Portal_86: -2144762342
+      Relic + Portal_87: -1331373872
+      Relic + Portal_88: 145428307
+      Relic + Portal_89: -947750069
+      Relic + Portal_9: 1771883286
+      Relic + Portal_90: -278482664
+      Relic + Portal_91: 1762307037
+      Relic + Portal_92: -591121410
+      Relic + Portal_93: -915522316
+      Relic + Portal_94: -987121407
+      Relic + Portal_95: -787985259
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

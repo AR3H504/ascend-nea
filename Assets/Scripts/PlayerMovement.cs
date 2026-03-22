@@ -89,6 +89,7 @@ public class PlayerMovement : MonoBehaviour
 
     private bool isSliding;                // Tracks whether the player is currently sliding
     private bool isHoldingSlidePose;       // Tracks whether the slide animation is frozen on a low hold pose
+    private bool queuedClimbSlide;         // Lets the player buffer a slide input during ledge climb for tight climb-then-slide sections
     private float slideTimer;              // Counts down the remaining slide time
     private float slideDirection;          // Stores which direction the player slides in
 
@@ -126,6 +127,11 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isClimbingLedge)
         {
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                queuedClimbSlide = true;
+            }
+
             animator.SetFloat("Speed", 0f);
             animator.SetBool("IsLedgeGrabbing", false);
             animator.SetBool("IsClimbingLedge", true);
@@ -140,6 +146,21 @@ public class PlayerMovement : MonoBehaviour
             {
                 isClimbingLedge = false;
                 rb.gravityScale = gravityBeforeLedgeGrab;
+
+                if (!CanStandUp())
+                {
+                    if (queuedClimbSlide)
+                    {
+                        BeginSlide(facingDirection);
+                    }
+                    else
+                    {
+                        transform.position = climbStartPos;
+                        ReleaseLedge();
+                    }
+                }
+
+                queuedClimbSlide = false;
             }
 
             return;
@@ -240,17 +261,7 @@ public class PlayerMovement : MonoBehaviour
         // if the player is grounded, moving, and not already sliding
         if (Input.GetKeyDown(KeyCode.LeftControl) && Mathf.Abs(horizontalInput) > 0.1f && !isSliding)
         {
-            isSliding = true;
-            isHoldingSlidePose = false;
-            slideTimer = slideDuration;
-            slideDirection = Mathf.Sign(horizontalInput);
-
-            // Visually squash the player to indicate sliding
-            // transform.localScale = new Vector3(originalScale.x * 1.3f, originalScale.y * 0.6f, originalScale.z);
-            animator.speed = 1f;
-            animator.Play("Slide", 0, 0f);
-            boxCollider.size = activeSlideColliderSize; // Adjust collider size for sliding without widening into nearby geometry
-            boxCollider.offset = activeSlideColliderOffset; // Keep the slide collider aligned with the player's feet
+            BeginSlide(Mathf.Sign(horizontalInput));
         }
 
         // Reduce the slide timer while sliding
@@ -566,6 +577,19 @@ public class PlayerMovement : MonoBehaviour
         return groundLayer | ledgeGrabbableLayer;
     }
 
+    void BeginSlide(float direction)
+    {
+        isSliding = true;
+        isHoldingSlidePose = false;
+        slideTimer = slideDuration;
+        slideDirection = direction == 0f ? facingDirection : Mathf.Sign(direction);
+
+        animator.speed = 1f;
+        animator.Play("Slide", 0, 0f);
+        boxCollider.size = activeSlideColliderSize;
+        boxCollider.offset = activeSlideColliderOffset;
+    }
+
     // Freezes the player in place when a ledge is grabbed
     void GrabLedge(RaycastHit2D wallHit)
     {
@@ -609,6 +633,7 @@ public class PlayerMovement : MonoBehaviour
     {
         isGrabbingLedge = false;
         isClimbingLedge = true;
+        queuedClimbSlide = false;
 
         climbStartPos = transform.position;
         climbTargetPos = transform.position + new Vector3(facingDirection * 0.5f, 1f, 0f);

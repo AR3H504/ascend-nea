@@ -113,4 +113,5 @@ public class GameManager : MonoBehaviour
             rb.linearVelocity = Vector2.zero;
         }
     }
+
 }

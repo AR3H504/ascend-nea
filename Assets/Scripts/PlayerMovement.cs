@@ -75,9 +75,6 @@ public class PlayerMovement : MonoBehaviour
     public float maxLedgeGrabHeight = 0.6f; // Prevents snapping to ledges that are far above the player, such as tall walls or big blocks
     public float ledgeHangDuration = 1.2f;   // Maximum time the player can hang before slipping off
     public float ledgeRegrabCooldown = 0.2f; // Delay before the same ledge can be grabbed again
-
-    
-
     // Private Variables
     private Rigidbody2D rb;
 
@@ -99,7 +96,6 @@ public class PlayerMovement : MonoBehaviour
     private float gravityBeforeLedgeGrab; // Stores the player's normal gravity before ledge grabbing
     private float ledgeHangTimer;         // Counts down how long the player can hang from a ledge
     private float ledgeCooldownTimer;     // Prevents instantly re-grabbing a ledge after falling
-
     private float facingDirection = 1f;    // Stores the direction the player is facing (1 = right, -1 = left)
     public Vector2 ledgeHangOffset = new Vector2(0.35f, -0.15f); // Offset from the ledge corner to place the player into a clean hang pose
 
@@ -557,6 +553,7 @@ public class PlayerMovement : MonoBehaviour
             if (ledgeTopY <= maxReachableTopY)
             {
                 GrabLedge(wallHit);
+                return;
             }
         }
     }

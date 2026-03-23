@@ -186,6 +186,18 @@ public class AccountManager : MonoBehaviour
         }
     }
 
+    // Clears the saved checkpoint for the current player and saves the change
+    public void ClearSavedCheckpoint()
+    {
+        if (CurrentProgress != null)
+        {
+            CurrentProgress.checkpointX = 0f;
+            CurrentProgress.checkpointY = 0f;
+            CurrentProgress.hasSavedCheckpoint = false;
+            ProgressSaveManager.SaveProgress(CurrentProgress);
+        }
+    }
+
     // Logs the current user out
     public void Logout()
     {

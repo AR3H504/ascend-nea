@@ -7,10 +7,10 @@ using UnityEngine;
 public class Checkpoint : MonoBehaviour
 {
     // Reference to the GameManager so we can update the respawn position
-    private GameManager gameManager;
+    protected GameManager gameManager;
 
     // Stores the sprite renderer so we can change colour
-    private SpriteRenderer spriteRenderer;
+    protected SpriteRenderer spriteRenderer;
 
     // Static variable stores the currently active checkpoint
     private static Checkpoint activeCheckpoint;
@@ -21,8 +21,11 @@ public class Checkpoint : MonoBehaviour
     // Colour for the active checkpoint
     public Color activeColor = Color.green;
 
+    protected virtual void Awake()
+    {
+    }
 
-    void Start()
+    protected virtual void Start()
     {
         // Find the GameManager in the scene
         gameManager = FindFirstObjectByType<GameManager>();
@@ -46,7 +49,7 @@ public class Checkpoint : MonoBehaviour
     }
 
 
-    void OnTriggerEnter2D(Collider2D other)
+    protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         // Check if the player touched the checkpoint
         if (other.CompareTag("Player"))
@@ -70,7 +73,7 @@ public class Checkpoint : MonoBehaviour
             // Reset the previously active checkpoint colour
             if (activeCheckpoint != null)
             {
-                activeCheckpoint.spriteRenderer.color = inactiveColor;
+                activeCheckpoint.spriteRenderer.color = activeCheckpoint.inactiveColor;
             }
 
             // Set this checkpoint as the new active checkpoint

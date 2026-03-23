@@ -64,11 +64,9 @@ public class GameManager : MonoBehaviour
         respawnPoint = levelStartPoint;
 
         // Also clear the saved checkpoint from account progress
-        if (AccountManager.Instance != null && AccountManager.Instance.CurrentProgress != null)
+        if (AccountManager.Instance != null)
         {
-            AccountManager.Instance.CurrentProgress.hasSavedCheckpoint = false;
-            AccountManager.Instance.CurrentProgress.checkpointX = levelStartPoint.x;
-            AccountManager.Instance.CurrentProgress.checkpointY = levelStartPoint.y;
+            AccountManager.Instance.ClearSavedCheckpoint();
         }
 
         Debug.Log("Respawn reset to level start: " + levelStartPoint);

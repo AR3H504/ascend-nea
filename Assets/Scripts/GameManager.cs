@@ -5,11 +5,18 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    private static bool forceExplicitLevelStartOnNextLoad;
+
     // Reference to the player object
     public Transform player;
 
     // Stores the current respawn point
     public Vector2 respawnPoint;
+
+    // Optional explicit level start so testing by moving the player in the editor
+    // does not accidentally change the game's real starting location.
+    public bool useExplicitLevelStart;
+    public Vector2 explicitLevelStartPoint;
 
     // Stores the original start position of the level
     private Vector2 levelStartPoint;
@@ -19,13 +26,34 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Store the player's starting position as the true level start
-        levelStartPoint = player.position;
+        // Use the configured level start when set, otherwise fall back to the
+        // player's scene position for older scenes that have not been updated yet.
+        levelStartPoint = useExplicitLevelStart
+            ? explicitLevelStartPoint
+            : player.position;
 
-        // Default respawn is the start of the level
-        respawnPoint = levelStartPoint;
+        // In editor play mode, keep the manually placed player position unless a
+        // saved checkpoint exists or another system explicitly requests a full restart.
+        bool shouldUseExplicitStart = useExplicitLevelStart &&
+            (!Application.isEditor || forceExplicitLevelStartOnNextLoad);
 
-        LoadSavedCheckpoint();
+        if (TryLoadSavedCheckpoint())
+        {
+            forceExplicitLevelStartOnNextLoad = false;
+            return;
+        }
+
+        if (shouldUseExplicitStart && player != null)
+        {
+            player.position = levelStartPoint;
+            respawnPoint = levelStartPoint;
+        }
+        else
+        {
+            respawnPoint = player != null ? (Vector2)player.position : levelStartPoint;
+        }
+
+        forceExplicitLevelStartOnNextLoad = false;
     }
 
     void Update()
@@ -72,24 +100,30 @@ public class GameManager : MonoBehaviour
         Debug.Log("Respawn reset to level start: " + levelStartPoint);
     }
 
-    void LoadSavedCheckpoint()
+    bool TryLoadSavedCheckpoint()
     {
         if (AccountManager.Instance == null || AccountManager.Instance.CurrentProgress == null)
         {
-            return;
+            return false;
         }
 
         ProgressData progress = AccountManager.Instance.CurrentProgress;
 
         if (!progress.hasSavedCheckpoint)
         {
-            return;
+            return false;
         }
 
         respawnPoint = new Vector2(progress.checkpointX, progress.checkpointY);
         player.position = respawnPoint;
 
         Debug.Log("Loaded saved checkpoint: " + respawnPoint);
+        return true;
+    }
+
+    public static void ForceExplicitLevelStartOnNextLoad()
+    {
+        forceExplicitLevelStartOnNextLoad = true;
     }
 
     // Respawns the player and optionally records a death

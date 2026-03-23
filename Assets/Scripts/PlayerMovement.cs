@@ -31,7 +31,9 @@ public class PlayerMovement : MonoBehaviour
     public float acceleration = 60f;       // How quickly the player reaches max speed
     public float deceleration = 80f;       // How quickly the player slows to a stop
     public float runMultiplier = 1.5f;     // Speed increase while holding the sprint input
-    public bool sprintEnabled = true;      // Lets level flow temporarily disable sprint until progression unlocks it
+    public bool sprintEnabled = true;      // Master switch so other systems can still disable sprint completely
+    public bool useSprintHeightGate;       // Enables sprint only when the player is above the unlock height
+    public float sprintUnlockYHeight;      // Sprint becomes available at or above this world Y position
 
     // Jump Settings
     [Header("Jump")]
@@ -184,7 +186,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
         }
         // Apply run multiplier while left mouse is held
-        if (sprintEnabled && Input.GetMouseButton(0))
+        if (CanSprint() && Input.GetMouseButton(0))
         {
             horizontalInput *= runMultiplier;
         }
@@ -591,6 +593,27 @@ public class PlayerMovement : MonoBehaviour
     public void SetSprintEnabled(bool enabled)
     {
         sprintEnabled = enabled;
+    }
+
+    public void SetSprintHeightGate(bool enabled, float unlockYHeight)
+    {
+        useSprintHeightGate = enabled;
+        sprintUnlockYHeight = unlockYHeight;
+    }
+
+    bool CanSprint()
+    {
+        if (!sprintEnabled)
+        {
+            return false;
+        }
+
+        if (!useSprintHeightGate)
+        {
+            return true;
+        }
+
+        return transform.position.y >= sprintUnlockYHeight;
     }
 
     // Freezes the player in place when a ledge is grabbed

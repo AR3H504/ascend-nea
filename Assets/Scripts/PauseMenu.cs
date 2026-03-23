@@ -112,6 +112,7 @@ public class PauseMenu : MonoBehaviour
             gameManager.ResetToLevelStart();
         }
 
+        GameManager.ForceExplicitLevelStartOnNextLoad();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 

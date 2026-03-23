@@ -98,7 +98,7 @@ public static class LedgeGrabbableColorTool
 
     private static bool LooksLikeCityLedgeObject(GameObject gameObject)
     {
-        return gameObject.name.StartsWith("CityPlatform") ||
+        return gameObject.name.StartsWith("City") ||
                gameObject.name.StartsWith("HorizontalBlock") ||
                gameObject.name.StartsWith("VerticalBlock") ||
                gameObject.name.StartsWith("Horizontal Block") ||

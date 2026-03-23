@@ -64,7 +64,7 @@ public static class LedgeGrabbableColorTool
 
         foreach (GameObject gameObject in gameObjects)
         {
-            if (gameObject == null || !gameObject.name.StartsWith("CityPlatform"))
+            if (gameObject == null || !LooksLikeCityLedgeObject(gameObject))
             {
                 continue;
             }
@@ -93,6 +93,15 @@ public static class LedgeGrabbableColorTool
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         }
 
-        Debug.Log($"Applied city ledge highlight to {updatedCount} platform(s).");
+        Debug.Log($"Applied city ledge highlight to {updatedCount} object(s).");
+    }
+
+    private static bool LooksLikeCityLedgeObject(GameObject gameObject)
+    {
+        return gameObject.name.StartsWith("CityPlatform") ||
+               gameObject.name.StartsWith("HorizontalBlock") ||
+               gameObject.name.StartsWith("VerticalBlock") ||
+               gameObject.name.StartsWith("Horizontal Block") ||
+               gameObject.name.StartsWith("Vertical Block");
     }
 }

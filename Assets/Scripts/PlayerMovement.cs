@@ -30,7 +30,8 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;           // Maximum horizontal speed
     public float acceleration = 60f;       // How quickly the player reaches max speed
     public float deceleration = 80f;       // How quickly the player slows to a stop
-    public float runMultiplier = 1.5f;     // Speed increase when holding Shift
+    public float runMultiplier = 1.5f;     // Speed increase while holding the sprint input
+    public bool sprintEnabled = true;      // Lets level flow temporarily disable sprint until progression unlocks it
 
     // Jump Settings
     [Header("Jump")]
@@ -182,8 +183,8 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
         }
-        // Apply run multiplier if Shift is held
-        if (Input.GetKey(KeyCode.LeftShift))
+        // Apply run multiplier while left mouse is held
+        if (sprintEnabled && Input.GetMouseButton(0))
         {
             horizontalInput *= runMultiplier;
         }
@@ -585,6 +586,11 @@ public class PlayerMovement : MonoBehaviour
         animator.Play("Slide", 0, 0f);
         boxCollider.size = activeSlideColliderSize;
         boxCollider.offset = activeSlideColliderOffset;
+    }
+
+    public void SetSprintEnabled(bool enabled)
+    {
+        sprintEnabled = enabled;
     }
 
     // Freezes the player in place when a ledge is grabbed

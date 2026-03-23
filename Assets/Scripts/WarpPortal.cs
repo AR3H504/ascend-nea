@@ -67,6 +67,12 @@ public class WarpPortal : MonoBehaviour
         // Move the player to the destination point in the same scene.
         other.transform.position = destinationPoint.position;
 
+        PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
+        if (playerMovement != null)
+        {
+            playerMovement.SetSprintEnabled(true);
+        }
+
         StartCoroutine(CooldownRoutine());
     }
 

@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 
 
@@ -83,6 +84,10 @@ public class PlayerMovement : MonoBehaviour
 
     private float horizontalInput;         // Stores raw horizontal input value
     private bool isGrounded;               // Tracks whether the player is currently touching the ground
+    private Collider2D groundedCollider;   // Stores which collider the player is currently standing on
+    private Rigidbody2D activePlatformBody; // Stores the rigidbody of the platform under the player
+    private MovingPlatform2D activePlatformScript; // Stores the moving platform script under the player
+    private Vector2 activePlatformVelocity; // Stores the platform movement for the current physics step
 
     private float coyoteCounter;           // Counts down the remaining time for coyote time after leaving the ground
     private float jumpBufferCounter;       // Counts down the remaining time for jump buffering after pressing jump
@@ -203,11 +208,15 @@ public class PlayerMovement : MonoBehaviour
 
         
         // Check if player is touching the ground using a small overlap circle
-        isGrounded = Physics2D.OverlapCircle(
+        groundedCollider = Physics2D.OverlapCircle(
             groundCheck.position,
             groundCheckRadius,
             GetSolidCollisionMask()
         );
+        isGrounded = groundedCollider != null;
+        activePlatformScript = GetActiveMovingPlatformComponent();
+        activePlatformBody = GetActivePlatformBody();
+        activePlatformVelocity = GetActivePlatformVelocity();
 
         animator.SetBool("IsLedgeGrabbing", isGrabbingLedge);
         animator.SetBool("IsClimbingLedge", isClimbingLedge);
@@ -379,6 +388,8 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
+        ApplyPlatformVerticalVelocity();
+
         // Use slide speed instead of normal movement speed while sliding
         float targetSpeed;
 
@@ -400,6 +411,10 @@ public class PlayerMovement : MonoBehaviour
             // Normal movement when not sliding
             targetSpeed = horizontalInput * moveSpeed;
         }
+
+        // Blend the platform's horizontal movement into the player's own target speed
+        // so standing still on a platform does not cause the controller to fight it.
+        targetSpeed += activePlatformVelocity.x;
 
         // Find the difference between current and desired speed
         float speedDifference = targetSpeed - rb.linearVelocity.x;
@@ -575,6 +590,107 @@ public class PlayerMovement : MonoBehaviour
     LayerMask GetSolidCollisionMask()
     {
         return groundLayer | ledgeGrabbableLayer;
+    }
+
+    MovingPlatform2D GetActiveMovingPlatformComponent()
+    {
+        if (!isGrounded || groundedCollider == null)
+        {
+            return null;
+        }
+
+        return groundedCollider.GetComponentInParent<MovingPlatform2D>();
+    }
+
+    Rigidbody2D GetActivePlatformBody()
+    {
+        if (!isGrounded || groundedCollider == null)
+        {
+            return null;
+        }
+
+        // If carry is off on this platform, do not inherit its movement.
+        if (!IsPlatformCarryEnabled())
+        {
+            return null;
+        }
+
+        Rigidbody2D platformBody = groundedCollider.attachedRigidbody;
+
+        if (platformBody == null || platformBody == rb)
+        {
+            return null;
+        }
+
+        if (platformBody.bodyType != RigidbodyType2D.Kinematic)
+        {
+            return null;
+        }
+
+        return platformBody;
+    }
+
+    bool IsPlatformCarryEnabled()
+    {
+        if (activePlatformScript == null)
+        {
+            return false;
+        }
+
+        // Read the carry setting from the moving platform script.
+        PropertyInfo carryProperty = typeof(MovingPlatform2D).GetProperty("CarryPlayer");
+
+        if (carryProperty != null)
+        {
+            object propertyValue = carryProperty.GetValue(activePlatformScript);
+
+            if (propertyValue is bool boolValue)
+            {
+                return boolValue;
+            }
+        }
+
+        FieldInfo carryField = typeof(MovingPlatform2D).GetField("carryPlayer", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        if (carryField != null)
+        {
+            object fieldValue = carryField.GetValue(activePlatformScript);
+
+            if (fieldValue is bool boolValue)
+            {
+                return boolValue;
+            }
+        }
+
+        return true;
+    }
+
+    Vector2 GetActivePlatformVelocity()
+    {
+        if (activePlatformBody == null)
+        {
+            return Vector2.zero;
+        }
+
+        // Use the platform rigidbody velocity so the player can move with it.
+        return activePlatformBody.linearVelocity;
+    }
+
+    void ApplyPlatformVerticalVelocity()
+    {
+        if (activePlatformBody == null)
+        {
+            return;
+        }
+
+        if (Mathf.Abs(activePlatformVelocity.y) <= 0.0001f)
+        {
+            return;
+        }
+
+        // Match the platform's up and down speed while the player is standing on it.
+        // This is more stable than moving the player with MovePosition each frame.
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, activePlatformVelocity.y);
     }
 
     void BeginSlide(float direction)

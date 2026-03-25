@@ -69,7 +69,7 @@ public static class LedgeGrabbableColorTool
                 continue;
             }
 
-            SpriteRenderer spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+            SpriteRenderer spriteRenderer = GetTargetSpriteRenderer(gameObject);
             if (spriteRenderer == null)
             {
                 continue;
@@ -98,10 +98,38 @@ public static class LedgeGrabbableColorTool
 
     private static bool LooksLikeCityLedgeObject(GameObject gameObject)
     {
+        if (gameObject.GetComponent<MovingPlatform2D>() != null)
+        {
+            return true;
+        }
+
         return gameObject.name.StartsWith("City") ||
+               gameObject.name.StartsWith("Platform") ||
+               gameObject.name.StartsWith("MovingPlatform") ||
                gameObject.name.StartsWith("HorizontalBlock") ||
                gameObject.name.StartsWith("VerticalBlock") ||
                gameObject.name.StartsWith("Horizontal Block") ||
                gameObject.name.StartsWith("Vertical Block");
+    }
+
+    private static SpriteRenderer GetTargetSpriteRenderer(GameObject gameObject)
+    {
+        SpriteRenderer spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            return spriteRenderer;
+        }
+
+        Transform visual = gameObject.transform.Find("Visual");
+        if (visual != null)
+        {
+            spriteRenderer = visual.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                return spriteRenderer;
+            }
+        }
+
+        return gameObject.GetComponentInChildren<SpriteRenderer>();
     }
 }

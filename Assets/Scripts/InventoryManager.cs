@@ -6,9 +6,18 @@ using UnityEngine.UI;
 
 public class InventoryManager : MonoBehaviour
 {
+    private static readonly Color HudOutlineColor = new Color(0.05f, 0.05f, 0.05f, 1f);
+    private static readonly Color HudUnderlayColor = new Color(0f, 0f, 0f, 0.9f);
+    private const float HudOutlineWidth = 0.35f;
+    private const float HudUnderlaySoftness = 0.15f;
+    private const float HudUnderlayDilate = 0.1f;
+    private const float HudUnderlayOffsetX = 0.5f;
+    private const float HudUnderlayOffsetY = -0.5f;
+
     public static InventoryManager Instance { get; private set; }
 
     [SerializeField] private TMP_Text inventoryText;
+    private TMP_Text inventoryDisplayText;
 
     private readonly HashSet<string> relics = new HashSet<string>();
 
@@ -20,8 +29,14 @@ public class InventoryManager : MonoBehaviour
     private Sprite jumpBoostSprite;
     // Runtime-created HUD text shown in the top-right while the boost is active.
     private TMP_Text jumpBoostTimerText;
+    // Runtime-created HUD text shown under the jump boost label for the live run timer.
+    private TMP_Text runTimerText;
     // Runtime-created HUD icon shown near the bottom of the screen while active.
     private Image jumpBoostInventoryIcon;
+    // Shadow copies that sit behind the primary HUD labels for stronger readability.
+    private TMP_Text inventoryShadowText;
+    private TMP_Text jumpBoostShadowText;
+    private TMP_Text runTimerShadowText;
 
     private void Awake()
     {
@@ -47,12 +62,16 @@ public class InventoryManager : MonoBehaviour
 
     private void Start()
     {
+        NormalizeInventoryTextStyle();
+        EnsureInventoryDisplayExists();
         RefreshInventoryText();
         RefreshJumpBoostUI();
     }
 
     private void Update()
     {
+        RefreshRunTimerUI();
+
         // No work is needed while no boost is active.
         if (jumpBoostTimer <= 0f)
         {
@@ -159,14 +178,17 @@ public class InventoryManager : MonoBehaviour
 
     public void RefreshInventoryText()
     {
-        if (inventoryText == null)
+        TMP_Text targetInventoryText = GetPrimaryInventoryText();
+
+        if (targetInventoryText == null)
         {
             return;
         }
 
         if (relics.Count == 0)
         {
-            inventoryText.text = "Relic: None";
+            targetInventoryText.text = "Relic: None";
+            SyncShadowText(targetInventoryText, inventoryShadowText);
             return;
         }
 
@@ -184,7 +206,8 @@ public class InventoryManager : MonoBehaviour
             firstRelic = false;
         }
 
-        inventoryText.text = builder.ToString();
+        targetInventoryText.text = builder.ToString();
+        SyncShadowText(targetInventoryText, inventoryShadowText);
     }
 
     private void RefreshJumpBoostUI()
@@ -198,11 +221,16 @@ public class InventoryManager : MonoBehaviour
         {
             // Only show the timer while the boost is active.
             jumpBoostTimerText.gameObject.SetActive(isActive);
+            if (jumpBoostShadowText != null)
+            {
+                jumpBoostShadowText.gameObject.SetActive(isActive);
+            }
 
             if (isActive)
             {
                 // Display the remaining boost time in mm:ss format.
                 jumpBoostTimerText.text = $"Jump Boost: {FormatTime(jumpBoostTimer)}";
+                SyncShadowText(jumpBoostTimerText, jumpBoostShadowText);
             }
         }
 
@@ -221,6 +249,19 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    private void RefreshRunTimerUI()
+    {
+        EnsureJumpBoostUIExists();
+
+        if (runTimerText == null)
+        {
+            return;
+        }
+
+        runTimerText.text = $"Time: {FormatRunTime(GameManager.CurrentRunTimeSeconds)}";
+        SyncShadowText(runTimerText, runTimerShadowText);
+    }
+
     private void HandlePlayerRespawned()
     {
         // Dying or checkpoint-respawning clears the current boost so the pickup can be taken again
@@ -231,7 +272,7 @@ public class InventoryManager : MonoBehaviour
     private void EnsureJumpBoostUIExists()
     {
         // Once both runtime HUD elements exist there is nothing else to build.
-        if (jumpBoostTimerText != null && jumpBoostInventoryIcon != null)
+        if (jumpBoostTimerText != null && runTimerText != null && jumpBoostInventoryIcon != null)
         {
             return;
         }
@@ -261,6 +302,31 @@ public class InventoryManager : MonoBehaviour
             {
                 jumpBoostTimerText.font = TMP_Settings.defaultFontAsset;
             }
+
+            ApplyHudTextStyle(jumpBoostTimerText);
+            jumpBoostShadowText = CreateShadowText(jumpBoostTimerText, "JumpBoostTimerShadow");
+        }
+
+        if (runTimerText == null)
+        {
+            GameObject timerObject = new GameObject("RunTimerText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            timerObject.transform.SetParent(targetCanvas.transform, false);
+
+            RectTransform rectTransform = timerObject.GetComponent<RectTransform>();
+            ConfigureRunTimerTransform(rectTransform);
+
+            runTimerText = timerObject.GetComponent<TextMeshProUGUI>();
+            runTimerText.alignment = TextAlignmentOptions.TopRight;
+            runTimerText.fontSize = 28f;
+            runTimerText.color = new Color(0.82f, 0.95f, 1f, 1f);
+
+            if (TMP_Settings.defaultFontAsset != null)
+            {
+                runTimerText.font = TMP_Settings.defaultFontAsset;
+            }
+
+            ApplyHudTextStyle(runTimerText);
+            runTimerShadowText = CreateShadowText(runTimerText, "RunTimerShadow");
         }
 
         if (jumpBoostInventoryIcon == null)
@@ -280,6 +346,26 @@ public class InventoryManager : MonoBehaviour
             jumpBoostInventoryIcon.color = Color.white;
             jumpBoostInventoryIcon.preserveAspect = true;
         }
+    }
+
+    private void ConfigureRunTimerTransform(RectTransform rectTransform)
+    {
+        if (inventoryText != null)
+        {
+            RectTransform inventoryRect = inventoryText.rectTransform;
+            rectTransform.anchorMin = inventoryRect.anchorMin;
+            rectTransform.anchorMax = inventoryRect.anchorMax;
+            rectTransform.pivot = inventoryRect.pivot;
+            rectTransform.anchoredPosition = inventoryRect.anchoredPosition + new Vector2(0f, -132f);
+            rectTransform.sizeDelta = inventoryRect.sizeDelta;
+            return;
+        }
+
+        rectTransform.anchorMin = new Vector2(1f, 1f);
+        rectTransform.anchorMax = new Vector2(1f, 1f);
+        rectTransform.pivot = new Vector2(1f, 1f);
+        rectTransform.anchoredPosition = new Vector2(-32f, -164f);
+        rectTransform.sizeDelta = new Vector2(280f, 42f);
     }
 
     private void ConfigureJumpBoostTimerTransform(RectTransform rectTransform)
@@ -339,6 +425,162 @@ public class InventoryManager : MonoBehaviour
         int minutes = totalSeconds / 60;
         int remainingSeconds = totalSeconds % 60;
         return $"{minutes:00}:{remainingSeconds:00}";
+    }
+
+    private static string FormatRunTime(float seconds)
+    {
+        seconds = Mathf.Max(0f, seconds);
+        int minutes = Mathf.FloorToInt(seconds / 60f);
+        float remainingSeconds = seconds % 60f;
+        return $"{minutes:00}:{remainingSeconds:00.00}";
+    }
+
+    private void EnsureInventoryShadowExists()
+    {
+        TMP_Text targetInventoryText = GetPrimaryInventoryText();
+
+        if (targetInventoryText == null || inventoryShadowText != null)
+        {
+            return;
+        }
+
+        inventoryShadowText = CreateShadowText(targetInventoryText, "InventoryTextShadow");
+        SyncShadowText(targetInventoryText, inventoryShadowText);
+    }
+
+    private void NormalizeInventoryTextStyle()
+    {
+        if (inventoryText == null)
+        {
+            return;
+        }
+
+        // Keep the relic label on the same visual footing as the other HUD labels.
+        inventoryText.fontStyle = FontStyles.Normal;
+        inventoryText.fontWeight = FontWeight.Regular;
+    }
+
+    private void EnsureInventoryDisplayExists()
+    {
+        if (inventoryText == null || inventoryDisplayText != null)
+        {
+            return;
+        }
+
+        GameObject displayObject = new GameObject("InventoryDisplayText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        displayObject.transform.SetParent(inventoryText.transform.parent, false);
+
+        RectTransform sourceRect = inventoryText.rectTransform;
+        RectTransform displayRect = displayObject.GetComponent<RectTransform>();
+        displayRect.anchorMin = sourceRect.anchorMin;
+        displayRect.anchorMax = sourceRect.anchorMax;
+        displayRect.pivot = sourceRect.pivot;
+        displayRect.anchoredPosition = sourceRect.anchoredPosition;
+        displayRect.sizeDelta = sourceRect.sizeDelta;
+        displayRect.localScale = sourceRect.localScale;
+
+        TextMeshProUGUI displayText = displayObject.GetComponent<TextMeshProUGUI>();
+        displayText.font = inventoryText.font;
+        displayText.fontSize = inventoryText.fontSize;
+        displayText.alignment = inventoryText.alignment;
+        displayText.fontStyle = FontStyles.Normal;
+        displayText.fontWeight = FontWeight.Regular;
+        displayText.enableWordWrapping = inventoryText.enableWordWrapping;
+        displayText.overflowMode = inventoryText.overflowMode;
+        displayText.raycastTarget = false;
+        displayText.color = inventoryText.color;
+
+        ApplyHudTextStyle(displayText);
+
+        displayObject.transform.SetSiblingIndex(inventoryText.transform.GetSiblingIndex());
+        inventoryText.enabled = false;
+        inventoryDisplayText = displayText;
+
+        EnsureInventoryShadowExists();
+    }
+
+    private TMP_Text GetPrimaryInventoryText()
+    {
+        return inventoryDisplayText != null ? inventoryDisplayText : inventoryText;
+    }
+
+    private TMP_Text CreateShadowText(TMP_Text sourceText, string objectName)
+    {
+        if (sourceText == null)
+        {
+            return null;
+        }
+
+        GameObject shadowObject = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        shadowObject.transform.SetParent(sourceText.transform.parent, false);
+
+        RectTransform sourceRect = sourceText.rectTransform;
+        RectTransform shadowRect = shadowObject.GetComponent<RectTransform>();
+        shadowRect.anchorMin = sourceRect.anchorMin;
+        shadowRect.anchorMax = sourceRect.anchorMax;
+        shadowRect.pivot = sourceRect.pivot;
+        shadowRect.anchoredPosition = sourceRect.anchoredPosition + new Vector2(1.4f, -1.4f);
+        shadowRect.sizeDelta = sourceRect.sizeDelta;
+        shadowRect.localScale = sourceRect.localScale;
+
+        TextMeshProUGUI shadowText = shadowObject.GetComponent<TextMeshProUGUI>();
+        shadowText.font = sourceText.font;
+        shadowText.fontSize = sourceText.fontSize;
+        shadowText.alignment = sourceText.alignment;
+        shadowText.fontStyle = sourceText.fontStyle;
+        shadowText.fontWeight = sourceText.fontWeight;
+        shadowText.enableWordWrapping = sourceText.enableWordWrapping;
+        shadowText.overflowMode = sourceText.overflowMode;
+        shadowText.raycastTarget = false;
+        shadowText.color = new Color(0f, 0f, 0f, 0.92f);
+
+        if (sourceText.fontSharedMaterial != null)
+        {
+            Material shadowMaterial = new Material(sourceText.fontSharedMaterial);
+            shadowMaterial.SetColor(ShaderUtilities.ID_FaceColor, new Color(0f, 0f, 0f, 1f));
+            shadowMaterial.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0f, 0f, 0f, 1f));
+            shadowMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.08f);
+            shadowText.fontMaterial = shadowMaterial;
+        }
+
+        shadowObject.transform.SetSiblingIndex(sourceText.transform.GetSiblingIndex());
+        sourceText.transform.SetAsLastSibling();
+
+        return shadowText;
+    }
+
+    private void SyncShadowText(TMP_Text sourceText, TMP_Text shadowText)
+    {
+        if (sourceText == null || shadowText == null)
+        {
+            return;
+        }
+
+        shadowText.text = sourceText.text;
+        shadowText.gameObject.SetActive(sourceText.gameObject.activeSelf);
+    }
+
+    private void ApplyHudTextStyle(TMP_Text text)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        if (text.fontSharedMaterial == null)
+        {
+            return;
+        }
+
+        Material outlinedMaterial = new Material(text.fontSharedMaterial);
+        outlinedMaterial.SetColor(ShaderUtilities.ID_OutlineColor, HudOutlineColor);
+        outlinedMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, HudOutlineWidth);
+        outlinedMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, HudUnderlayColor);
+        outlinedMaterial.SetFloat(ShaderUtilities.ID_UnderlaySoftness, HudUnderlaySoftness);
+        outlinedMaterial.SetFloat(ShaderUtilities.ID_UnderlayDilate, HudUnderlayDilate);
+        outlinedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, HudUnderlayOffsetX);
+        outlinedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, HudUnderlayOffsetY);
+        text.fontMaterial = outlinedMaterial;
     }
 }
 

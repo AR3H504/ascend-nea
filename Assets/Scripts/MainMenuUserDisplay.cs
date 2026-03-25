@@ -24,7 +24,7 @@ public class MainMenuUserDisplay : MonoBehaviour
 
                 progressInfoText.text =
                     "Deaths: " + progress.deaths +
-                    " | Best Time: " + progress.bestTime;
+                    " | Best Time: " + FormatBestTime(progress.bestTime);
             }
             else
             {
@@ -36,5 +36,17 @@ public class MainMenuUserDisplay : MonoBehaviour
             welcomeText.text = "Welcome, Guest";
             progressInfoText.text = "No user logged in.";
         }
+    }
+
+    private string FormatBestTime(float timeSeconds)
+    {
+        if (timeSeconds <= 0f)
+        {
+            return "--:--.--";
+        }
+
+        int minutes = Mathf.FloorToInt(timeSeconds / 60f);
+        float seconds = timeSeconds % 60f;
+        return $"{minutes:00}:{seconds:00.00}";
     }
 }

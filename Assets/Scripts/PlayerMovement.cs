@@ -11,6 +11,9 @@ public class PlayerMovement : MonoBehaviour
 {
     private Animator animator; // Reference to the Animator component for controlling animations
     private SpriteRenderer sr; // Reference to the SpriteRenderer component for flipping the sprite based on movement direction
+    private AudioSource oneShotAudioSource;
+    private AudioSource footstepLoopSource;
+    private AudioSource slideLoopSource;
 
     private bool isClimbingLedge; // Tracks whether the player is currently climbing up from a ledge grab
     private Vector3 climbStartPos; // Starting position of the player when beginning to climb a ledge
@@ -107,6 +110,7 @@ public class PlayerMovement : MonoBehaviour
     private float ledgeCooldownTimer;     // Prevents instantly re-grabbing a ledge after falling
     private float facingDirection = 1f;    // Stores the direction the player is facing (1 = right, -1 = left)
     public Vector2 ledgeHangOffset = new Vector2(0.35f, -0.15f); // Offset from the ledge corner to place the player into a clean hang pose
+    private bool wasGroundedLastFrame;
 
     void Start()
     {   
@@ -126,6 +130,7 @@ public class PlayerMovement : MonoBehaviour
         originalColliderOffset = boxCollider.offset; // Store the normal offset of the collider to restore after sliding
         CacheSlideColliderShape();
         CacheLedgeGrabbableLayer();
+        InitializeAudioSources();
     }
 
     void Update()
@@ -221,6 +226,12 @@ public class PlayerMovement : MonoBehaviour
             GetSolidCollisionMask()
         );
         isGrounded = groundedCollider != null;
+
+        if (!wasGroundedLastFrame && isGrounded)
+        {
+            PlayOneShot(GameAudio.LandingClip);
+        }
+
         activePlatformScript = GetActiveMovingPlatformComponent();
         activePlatformBody = GetActivePlatformBody();
         activePlatformVelocity = GetActivePlatformVelocity();
@@ -312,6 +323,7 @@ public class PlayerMovement : MonoBehaviour
 
                     // Apply a slightly boosted jump out of the slide
                     rb.linearVelocity = new Vector2(rb.linearVelocity.x, GetModifiedJumpForce() * slideJumpBoost);
+                    PlayOneShot(GameAudio.JumpClip);
 
                     // Clear timers so the jump cannot be double-triggered
                     coyoteCounter = 0f;
@@ -376,6 +388,7 @@ public class PlayerMovement : MonoBehaviour
 
             // Apply upward jump velocity
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, GetModifiedJumpForce());
+            PlayOneShot(GameAudio.JumpClip);
             coyoteCounter = 0f;
 
             // Player is now airborne, so clear the buffered jump
@@ -384,6 +397,8 @@ public class PlayerMovement : MonoBehaviour
         }
 
         animator.SetBool("IsSliding", isSliding);
+        UpdateLoopingAudio();
+        wasGroundedLastFrame = isGrounded;
     }
 
     void FixedUpdate()
@@ -711,6 +726,7 @@ public class PlayerMovement : MonoBehaviour
         animator.Play("Slide", 0, 0f);
         boxCollider.size = activeSlideColliderSize;
         boxCollider.offset = activeSlideColliderOffset;
+        UpdateLoopingAudio();
     }
 
     public void SetSprintEnabled(bool enabled)
@@ -737,6 +753,72 @@ public class PlayerMovement : MonoBehaviour
         }
 
         return jumpForce * InventoryManager.Instance.GetJumpBoostMultiplier();
+    }
+
+    void InitializeAudioSources()
+    {
+        oneShotAudioSource = gameObject.AddComponent<AudioSource>();
+        oneShotAudioSource.playOnAwake = false;
+
+        footstepLoopSource = gameObject.AddComponent<AudioSource>();
+        footstepLoopSource.playOnAwake = false;
+        footstepLoopSource.loop = true;
+        footstepLoopSource.clip = GameAudio.FootstepClip;
+        footstepLoopSource.volume = 0.75f;
+
+        slideLoopSource = gameObject.AddComponent<AudioSource>();
+        slideLoopSource.playOnAwake = false;
+        slideLoopSource.loop = true;
+        slideLoopSource.clip = GameAudio.SlideClip;
+        slideLoopSource.volume = 0.9f;
+    }
+
+    void UpdateLoopingAudio()
+    {
+        bool shouldPlayFootsteps = isGrounded &&
+                                   !isSliding &&
+                                   !isGrabbingLedge &&
+                                   !isClimbingLedge &&
+                                   Mathf.Abs(horizontalInput) > 0.1f &&
+                                   GameAudio.FootstepClip != null;
+
+        if (shouldPlayFootsteps)
+        {
+            if (!footstepLoopSource.isPlaying)
+            {
+                footstepLoopSource.clip = GameAudio.FootstepClip;
+                footstepLoopSource.Play();
+            }
+        }
+        else if (footstepLoopSource.isPlaying)
+        {
+            footstepLoopSource.Stop();
+        }
+
+        bool shouldPlaySlide = isSliding && GameAudio.SlideClip != null;
+
+        if (shouldPlaySlide)
+        {
+            if (!slideLoopSource.isPlaying)
+            {
+                slideLoopSource.clip = GameAudio.SlideClip;
+                slideLoopSource.Play();
+            }
+        }
+        else if (slideLoopSource.isPlaying)
+        {
+            slideLoopSource.Stop();
+        }
+    }
+
+    void PlayOneShot(AudioClip clip)
+    {
+        if (oneShotAudioSource == null || clip == null)
+        {
+            return;
+        }
+
+        oneShotAudioSource.PlayOneShot(clip);
     }
 
     bool CanSprint()

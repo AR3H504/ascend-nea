@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 // This script controls the pause menu system.
 // It allows the player to pause the game, resume,
@@ -22,8 +23,16 @@ public class PauseMenu : MonoBehaviour
     // Reference to the options panel
     public GameObject optionsPanel;
 
+    // Optional pause-menu volume slider. If not assigned, it is found automatically.
+    public Slider volumeSlider;
+
     // Tracks whether the game is currently paused
     private bool isPaused = false;
+
+    private void Start()
+    {
+        InitializeVolumeControls();
+    }
 
     void Update()
     {
@@ -78,6 +87,7 @@ public class PauseMenu : MonoBehaviour
     // Opens the options panel
     public void OpenOptions()
     {
+        InitializeVolumeControls();
         pausePanel.SetActive(false);
         optionsPanel.SetActive(true);
     }
@@ -130,5 +140,50 @@ public class PauseMenu : MonoBehaviour
 
         // Load the main menu scene
         SceneManager.LoadScene("MainMenu");
+    }
+
+    private void InitializeVolumeControls()
+    {
+        if (volumeSlider == null && optionsPanel != null)
+        {
+            Transform sliderTransform = optionsPanel.transform.Find("VolumeSlider");
+            if (sliderTransform != null)
+            {
+                volumeSlider = sliderTransform.GetComponent<Slider>();
+            }
+
+            if (volumeSlider == null)
+            {
+                volumeSlider = optionsPanel.GetComponentInChildren<Slider>(true);
+            }
+        }
+
+        if (volumeSlider == null)
+        {
+            return;
+        }
+
+        volumeSlider.onValueChanged.RemoveListener(HandleVolumeChanged);
+        volumeSlider.minValue = 0f;
+        volumeSlider.maxValue = 1f;
+        volumeSlider.value = PlayerPrefs.GetFloat("Volume", AudioListener.volume);
+        volumeSlider.onValueChanged.AddListener(HandleVolumeChanged);
+
+        ApplySavedVolume();
+    }
+
+    private void HandleVolumeChanged(float newVolume)
+    {
+        AudioListener.volume = newVolume;
+        PlayerPrefs.SetFloat("Volume", newVolume);
+        PlayerPrefs.SetInt("Muted", newVolume <= 0.001f ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    private void ApplySavedVolume()
+    {
+        bool isMuted = PlayerPrefs.GetInt("Muted", 0) == 1;
+        float savedVolume = PlayerPrefs.GetFloat("Volume", 1f);
+        AudioListener.volume = isMuted ? 0f : savedVolume;
     }
 }

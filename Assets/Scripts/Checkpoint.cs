@@ -21,6 +21,8 @@ public class Checkpoint : MonoBehaviour
     // Colour for the active checkpoint
     public Color activeColor = Color.green;
 
+    private AudioSource audioSource;
+
     protected virtual void Awake()
     {
     }
@@ -46,6 +48,14 @@ public class Checkpoint : MonoBehaviour
 
         // Set the starting colour to inactive
         spriteRenderer.color = inactiveColor;
+
+        audioSource = GetComponent<AudioSource>();
+
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
     }
 
 
@@ -81,6 +91,11 @@ public class Checkpoint : MonoBehaviour
 
             // Change this checkpoint's colour to show it is active
             spriteRenderer.color = activeColor;
+
+            if (audioSource != null && GameAudio.CheckpointClip != null)
+            {
+                audioSource.PlayOneShot(GameAudio.CheckpointClip);
+            }
 
             Debug.Log("Checkpoint activated!");
         }

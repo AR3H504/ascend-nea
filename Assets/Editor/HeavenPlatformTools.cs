@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -44,6 +44,11 @@ public static class HeavenPlatformTools
         foreach (var target in targets)
         {
             if (!LooksLikeGroundPlatform(target))
+            {
+                continue;
+            }
+
+            if (!IsUnderHeavenHierarchy(target))
             {
                 continue;
             }
@@ -156,6 +161,23 @@ public static class HeavenPlatformTools
         return transforms.ToArray();
     }
 
+    private static bool IsUnderHeavenHierarchy(Transform transform)
+    {
+        var current = transform;
+
+        while (current != null)
+        {
+            if (current.name.Contains("Heaven"))
+            {
+                return true;
+            }
+
+            current = current.parent;
+        }
+
+        return false;
+    }
+
     private static bool LooksLikeGroundPlatform(Transform transform)
     {
         if (transform == null || !transform.name.Contains("GroundPlatform"))
@@ -167,3 +189,4 @@ public static class HeavenPlatformTools
                transform.GetComponent<SpriteRenderer>() != null;
     }
 }
+

@@ -39,6 +39,8 @@ public class RelicPickup : MonoBehaviour
         hasBeenCollected = true;
         InventoryManager.Instance.AddRelic(relicId);
 
+        GameAudio.PlayItemPickup(transform.position);
+
         // Remove the pickup after a successful collection.
         Destroy(gameObject);
     }

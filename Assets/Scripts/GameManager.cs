@@ -6,8 +6,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private static bool forceExplicitLevelStartOnNextLoad;
+    private const string FinishMarkerName = "ThanksForPlaying";
 
     public static event System.Action PlayerRespawned;
+    public static float CurrentRunTimeSeconds { get; private set; }
+    public static bool IsCurrentRunComplete { get; private set; }
 
     // Reference to the player object
     public Transform player;
@@ -25,6 +28,15 @@ public class GameManager : MonoBehaviour
 
     // Height below which the player is considered dead
     public float deathHeight = -10f;
+
+    // The player only needs to reach a little below the end marker
+    // for the run to count as finished.
+    public float finishDetectionPadding = 2f;
+
+    private float currentRunTime;
+    private bool runCompleted;
+    private Transform finishMarker;
+    private float finishYThreshold = float.PositiveInfinity;
 
     void Start()
     {
@@ -55,11 +67,23 @@ public class GameManager : MonoBehaviour
             respawnPoint = player != null ? (Vector2)player.position : levelStartPoint;
         }
 
+        currentRunTime = 0f;
+        runCompleted = false;
+        CurrentRunTimeSeconds = 0f;
+        IsCurrentRunComplete = false;
+        CacheFinishMarker();
         forceExplicitLevelStartOnNextLoad = false;
     }
 
     void Update()
     {
+        if (!runCompleted)
+        {
+            currentRunTime += Time.deltaTime;
+            CurrentRunTimeSeconds = currentRunTime;
+            TryCompleteRun();
+        }
+
         // If the player falls below the death height, respawn them
         if (player.position.y < deathHeight)
         {
@@ -126,6 +150,51 @@ public class GameManager : MonoBehaviour
     public static void ForceExplicitLevelStartOnNextLoad()
     {
         forceExplicitLevelStartOnNextLoad = true;
+    }
+
+    private void CacheFinishMarker()
+    {
+        GameObject finishMarkerObject = GameObject.Find(FinishMarkerName);
+
+        if (finishMarkerObject == null)
+        {
+            Debug.LogWarning("GameManager could not find the finish marker object.", this);
+            return;
+        }
+
+        finishMarker = finishMarkerObject.transform;
+        finishYThreshold = finishMarker.position.y - Mathf.Abs(finishDetectionPadding);
+    }
+
+    private void TryCompleteRun()
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        if (finishMarker == null)
+        {
+            CacheFinishMarker();
+        }
+
+        if (float.IsPositiveInfinity(finishYThreshold))
+        {
+            return;
+        }
+
+        if (player.position.y < finishYThreshold)
+        {
+            return;
+        }
+
+        runCompleted = true;
+        IsCurrentRunComplete = true;
+
+        if (AccountManager.Instance != null)
+        {
+            AccountManager.Instance.RecordCompletionTime(currentRunTime);
+        }
     }
 
     // Respawns the player and optionally records a death

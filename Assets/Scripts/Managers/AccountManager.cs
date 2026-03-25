@@ -67,9 +67,8 @@ public class AccountManager : MonoBehaviour
             return false;
         }
 
-        if (password.Length < 6)
+        if (!TryValidateStrongPassword(password, out message))
         {
-            message = "Password must be at least 6 characters.";
             return false;
         }
 
@@ -109,6 +108,33 @@ public class AccountManager : MonoBehaviour
         ProgressSaveManager.SaveProgress(defaultProgress);
 
         message = "Account created successfully.";
+        return true;
+    }
+
+    // Enforces the sign-up password rules and returns a user-facing message
+    // that can be shown directly on the sign-up screen.
+    private bool TryValidateStrongPassword(string password, out string message)
+    {
+        // Require at least 6 characters before checking the more specific rules.
+        if (password.Length < 6)
+        {
+            message = "Password too weak must contain 1 lower case 1 highercase 1 special and 1 number and at least 6 characters.";
+            return false;
+        }
+
+        // Check each required character category so weak passwords are rejected.
+        bool hasLowercase = password.Any(char.IsLower);
+        bool hasUppercase = password.Any(char.IsUpper);
+        bool hasNumber = password.Any(char.IsDigit);
+        bool hasSpecialCharacter = password.Any(character => !char.IsLetterOrDigit(character));
+
+        if (!hasLowercase || !hasUppercase || !hasNumber || !hasSpecialCharacter)
+        {
+            message = "Password too weak must contain 1 lower case 1 highercase 1 special and 1 number and at least 6 characters.";
+            return false;
+        }
+
+        message = string.Empty;
         return true;
     }
 
@@ -196,6 +222,29 @@ public class AccountManager : MonoBehaviour
             CurrentProgress.hasSavedCheckpoint = false;
             ProgressSaveManager.SaveProgress(CurrentProgress);
         }
+    }
+
+    // Records a completed run and stores the best time when improved.
+    public void RecordCompletionTime(float completionTimeSeconds)
+    {
+        if (CurrentProgress == null)
+        {
+            return;
+        }
+
+        if (completionTimeSeconds <= 0f)
+        {
+            return;
+        }
+
+        CurrentProgress.hasFinishedGame = true;
+
+        if (CurrentProgress.bestTime <= 0f || completionTimeSeconds < CurrentProgress.bestTime)
+        {
+            CurrentProgress.bestTime = completionTimeSeconds;
+        }
+
+        ProgressSaveManager.SaveProgress(CurrentProgress);
     }
 
     // Logs the current user out

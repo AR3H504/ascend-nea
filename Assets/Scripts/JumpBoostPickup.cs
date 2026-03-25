@@ -6,6 +6,8 @@ public class JumpBoostPickup : MonoBehaviour
     [SerializeField] private float durationSeconds = 10f;
     // Multiplies the player's normal jump force while the boost is active.
     [SerializeField] private float jumpMultiplier = 1.35f;
+    // Allows special pickups to stay silent when they can be triggered rapidly.
+    [SerializeField] private bool playPickupAudio = true;
 
     // Prevents the pickup from being collected twice before it is destroyed.
     private bool hasBeenCollected;
@@ -66,6 +68,12 @@ public class JumpBoostPickup : MonoBehaviour
 
         hasBeenCollected = true;
         InventoryManager.Instance.ActivateJumpBoost(durationSeconds, jumpMultiplier, GetPickupSprite());
+
+        if (playPickupAudio)
+        {
+            GameAudio.PlayItemPickup(transform.position);
+        }
+
         SetPickupVisible(false);
     }
 

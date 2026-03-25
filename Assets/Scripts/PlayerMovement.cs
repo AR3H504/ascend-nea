@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using UnityEngine;
 
 
@@ -311,7 +311,7 @@ public class PlayerMovement : MonoBehaviour
                     rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
 
                     // Apply a slightly boosted jump out of the slide
-                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * slideJumpBoost);
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, GetModifiedJumpForce() * slideJumpBoost);
 
                     // Clear timers so the jump cannot be double-triggered
                     coyoteCounter = 0f;
@@ -375,7 +375,7 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
 
             // Apply upward jump velocity
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, GetModifiedJumpForce());
             coyoteCounter = 0f;
 
             // Player is now airborne, so clear the buffered jump
@@ -729,6 +729,16 @@ public class PlayerMovement : MonoBehaviour
         sprintUnlockYHeight = unlockYHeight;
     }
 
+    float GetModifiedJumpForce()
+    {
+        if (InventoryManager.Instance == null)
+        {
+            return jumpForce;
+        }
+
+        return jumpForce * InventoryManager.Instance.GetJumpBoostMultiplier();
+    }
+
     bool CanSprint()
     {
         if (!sprintEnabled)
@@ -812,3 +822,5 @@ public class PlayerMovement : MonoBehaviour
     }
     
 }
+
+

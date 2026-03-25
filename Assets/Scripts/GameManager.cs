@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
 {
     private static bool forceExplicitLevelStartOnNextLoad;
 
+    public static event System.Action PlayerRespawned;
+
     // Reference to the player object
     public Transform player;
 
@@ -144,6 +146,8 @@ public class GameManager : MonoBehaviour
         {
             rb.linearVelocity = Vector2.zero;
         }
+
+        PlayerRespawned?.Invoke();
     }
 
 }

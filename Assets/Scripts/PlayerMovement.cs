@@ -92,6 +92,7 @@ public class PlayerMovement : MonoBehaviour
     private float coyoteCounter;           // Counts down the remaining time for coyote time after leaving the ground
     private float jumpBufferCounter;       // Counts down the remaining time for jump buffering after pressing jump
 
+    private bool sprintToggleActive;       // Tracks whether sprint has been toggled on with Shift
     private bool isSliding;                // Tracks whether the player is currently sliding
     private bool isHoldingSlidePose;       // Tracks whether the slide animation is frozen on a low hold pose
     private bool queuedClimbSlide;         // Lets the player buffer a slide input during ledge climb for tight climb-then-slide sections
@@ -173,6 +174,11 @@ public class PlayerMovement : MonoBehaviour
         // Read horizontal input (-1 = left, 1 = right)
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
+        if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+        {
+            sprintToggleActive = !sprintToggleActive;
+        }
+
         if (horizontalInput > 0)
         {
             sr.flipX = false;
@@ -190,8 +196,9 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
         }
-        // Apply run multiplier while left mouse is held
-        if (CanSprint() && Input.GetMouseButton(0))
+
+        // Apply the sprint multiplier while sprint is toggled on.
+        if (CanSprint() && sprintToggleActive)
         {
             horizontalInput *= runMultiplier;
         }
@@ -709,6 +716,11 @@ public class PlayerMovement : MonoBehaviour
     public void SetSprintEnabled(bool enabled)
     {
         sprintEnabled = enabled;
+
+        if (!enabled)
+        {
+            sprintToggleActive = false;
+        }
     }
 
     public void SetSprintHeightGate(bool enabled, float unlockYHeight)

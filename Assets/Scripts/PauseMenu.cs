@@ -41,6 +41,12 @@ public class PauseMenu : MonoBehaviour
                 PauseGame();
             }
         }
+
+        // Allow a quick keyboard restart from the latest checkpoint.
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            RestartFromCheckpoint();
+        }
     }
 
     // Pauses the game and shows the pause menu

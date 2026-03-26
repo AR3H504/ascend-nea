@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class Checkpoint : MonoBehaviour
 {
+    public const string CheckpointsEnabledPrefKey = "CheckpointsEnabled";
+
     // Reference to the GameManager so we can update the respawn position
     protected GameManager gameManager;
 
@@ -64,6 +66,11 @@ public class Checkpoint : MonoBehaviour
         // Check if the player touched the checkpoint
         if (other.CompareTag("Player"))
         {
+            if (!AreCheckpointsEnabled())
+            {
+                return;
+            }
+
             if (gameManager == null)
             {
                 Debug.LogError("Checkpoint cannot update because no GameManager was found.", this);
@@ -103,6 +110,22 @@ public class Checkpoint : MonoBehaviour
 
     public static void ResetActiveCheckpoint()
     {
+        if (activeCheckpoint != null && activeCheckpoint.spriteRenderer != null)
+        {
+            activeCheckpoint.spriteRenderer.color = activeCheckpoint.inactiveColor;
+        }
+
         activeCheckpoint = null;
+    }
+
+    public static bool AreCheckpointsEnabled()
+    {
+        return PlayerPrefs.GetInt(CheckpointsEnabledPrefKey, 1) == 1;
+    }
+
+    public static void SetCheckpointsEnabled(bool isEnabled)
+    {
+        PlayerPrefs.SetInt(CheckpointsEnabledPrefKey, isEnabled ? 1 : 0);
+        PlayerPrefs.Save();
     }
 }

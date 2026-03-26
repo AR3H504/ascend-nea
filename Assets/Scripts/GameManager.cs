@@ -128,6 +128,11 @@ public class GameManager : MonoBehaviour
 
     bool TryLoadSavedCheckpoint()
     {
+        if (!Checkpoint.AreCheckpointsEnabled())
+        {
+            return false;
+        }
+
         if (AccountManager.Instance == null || AccountManager.Instance.CurrentProgress == null)
         {
             return false;

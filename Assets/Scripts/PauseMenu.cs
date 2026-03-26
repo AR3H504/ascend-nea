@@ -26,12 +26,23 @@ public class PauseMenu : MonoBehaviour
     // Optional pause-menu volume slider. If not assigned, it is found automatically.
     public Slider volumeSlider;
 
+    // Optional pause-menu toggle for enabling/disabling checkpoints.
+    public Toggle checkpointsToggle;
+
+    // Optional checkpoint restart button so it can be disabled when checkpoints are off.
+    public Button checkpointButton;
+
+    // Optional button and label for toggling checkpoints from the options panel.
+    public Button checkpointsToggleButton;
+    public Graphic checkpointsToggleStatusGraphic;
+
     // Tracks whether the game is currently paused
     private bool isPaused = false;
 
     private void Start()
     {
         InitializeVolumeControls();
+        InitializeCheckpointControls();
     }
 
     void Update()
@@ -69,6 +80,7 @@ public class PauseMenu : MonoBehaviour
 
         Time.timeScale = 0f;
         isPaused = true;
+        RefreshCheckpointControls();
     }
 
     // Resumes the game and hides the pause menu
@@ -88,6 +100,7 @@ public class PauseMenu : MonoBehaviour
     public void OpenOptions()
     {
         InitializeVolumeControls();
+        InitializeCheckpointControls();
         pausePanel.SetActive(false);
         optionsPanel.SetActive(true);
     }
@@ -102,6 +115,11 @@ public class PauseMenu : MonoBehaviour
     // Sends the player back to their last checkpoint
     public void RestartFromCheckpoint()
     {
+        if (!Checkpoint.AreCheckpointsEnabled())
+        {
+            return;
+        }
+
         // Ensure the game resumes before teleporting player
         Time.timeScale = 1f;
 
@@ -185,5 +203,117 @@ public class PauseMenu : MonoBehaviour
         bool isMuted = PlayerPrefs.GetInt("Muted", 0) == 1;
         float savedVolume = PlayerPrefs.GetFloat("Volume", 1f);
         AudioListener.volume = isMuted ? 0f : savedVolume;
+    }
+
+    private void InitializeCheckpointControls()
+    {
+        if (optionsPanel == null)
+        {
+            return;
+        }
+
+        if (checkpointsToggle == null)
+        {
+            Transform existingToggle = optionsPanel.transform.Find("CheckpointsToggle");
+            if (existingToggle != null)
+            {
+                checkpointsToggle = existingToggle.GetComponent<Toggle>();
+            }
+        }
+
+        if (checkpointsToggleButton == null)
+        {
+            Transform existingButton = optionsPanel.transform.Find("CheckpointsToggleButton");
+            if (existingButton == null)
+            {
+                existingButton = optionsPanel.transform.Find("DisableCheckpointsButton");
+            }
+
+            if (existingButton == null)
+            {
+                existingButton = optionsPanel.transform.Find("CheckpointToggleButton");
+            }
+
+            if (existingButton != null)
+            {
+                checkpointsToggleButton = existingButton.GetComponent<Button>();
+            }
+        }
+
+        if (checkpointsToggleStatusGraphic == null && checkpointsToggleButton != null)
+        {
+            checkpointsToggleStatusGraphic = checkpointsToggleButton.GetComponentInChildren<Graphic>(true);
+        }
+
+        if (checkpointsToggle != null)
+        {
+            checkpointsToggle.onValueChanged.RemoveListener(HandleCheckpointsToggleChanged);
+            checkpointsToggle.isOn = Checkpoint.AreCheckpointsEnabled();
+            checkpointsToggle.onValueChanged.AddListener(HandleCheckpointsToggleChanged);
+        }
+
+        if (checkpointsToggleButton != null)
+        {
+            checkpointsToggleButton.onClick.RemoveListener(ToggleCheckpointsEnabled);
+            checkpointsToggleButton.onClick.AddListener(ToggleCheckpointsEnabled);
+        }
+
+        RefreshCheckpointControls();
+    }
+
+    private void RefreshCheckpointControls()
+    {
+        if (checkpointButton == null && pausePanel != null)
+        {
+            Transform existingButton = pausePanel.transform.Find("CheckpointButton");
+            if (existingButton != null)
+            {
+                checkpointButton = existingButton.GetComponent<Button>();
+            }
+        }
+
+        bool areCheckpointsEnabled = Checkpoint.AreCheckpointsEnabled();
+
+        if (checkpointsToggle == null)
+        {
+            if (checkpointButton != null)
+            {
+                checkpointButton.interactable = areCheckpointsEnabled;
+            }
+        }
+        else
+        {
+            checkpointsToggle.SetIsOnWithoutNotify(areCheckpointsEnabled);
+        }
+
+        if (checkpointButton != null)
+        {
+            checkpointButton.interactable = areCheckpointsEnabled;
+        }
+
+        if (checkpointsToggleStatusGraphic != null)
+        {
+            checkpointsToggleStatusGraphic.color = areCheckpointsEnabled
+                ? new Color(0.15f, 0.85f, 0.35f, 1f)
+                : new Color(0.85f, 0.2f, 0.2f, 1f);
+        }
+    }
+
+    private void HandleCheckpointsToggleChanged(bool areEnabled)
+    {
+        Checkpoint.SetCheckpointsEnabled(areEnabled);
+
+        if (!areEnabled && gameManager != null)
+        {
+            gameManager.ResetToLevelStart();
+            Checkpoint.ResetActiveCheckpoint();
+        }
+
+        RefreshCheckpointControls();
+    }
+
+    public void ToggleCheckpointsEnabled()
+    {
+        HandleCheckpointsToggleChanged(!Checkpoint.AreCheckpointsEnabled());
     }
 }
